@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kasir Sederhana</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .product-list, .cart, .transaction-history {
+            flex-basis: 30%;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .product-item, .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .product-item button, .cart-item button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .product-item button:hover, .cart-item button:hover {
+            background-color: #45a049;
+        }
+        input[type="number"], input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: right;
+        }
+        .checkout-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .checkout-btn:hover {
+            background-color: #45a049;
+        }
+        .transaction-item {
+            background-color: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .icon {
+            margin-right: 5px;
+        }
+        #addProductForm {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        #addProductForm button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #addProductForm button:hover {
+            background-color: #45a049;
+        }
+        .search-bar {
+            margin-bottom: 15px;
+        }
+        .search-bar input {
+            width: calc(100% - 22px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #paymentForm {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-cash-register icon"></i>Sistem Kasir Sederhana</h1>
+        <div class="flex-container">
+            <div class="product-list">
+                <h2><i class="fas fa-list icon"></i>Daftar Produk</h2>
+                <div class="search-bar">
+                    <input type="text" id="productSearch" placeholder="Cari produk...">
+                </div>
+                <div id="productList"></div>
+            </div>
+            <div class="cart">
+                <h2><i class="fas fa-shopping-cart icon"></i>Keranjang</h2>
+                <div id="cartItems"></div>
+                <div class="total">Total: <span id="cartTotal">Rp 0</span></div>
+                <div id="paymentForm">
+                    <h3><i class="fas fa-money-bill-wave icon"></i>Pembayaran</h3>
+                    <input type="number" id="customerPayment" placeholder="Jumlah uang customer">
+                    <button class="checkout-btn" onclick="processPayment()"><i class="fas fa-money-bill-wave icon"></i>Proses Pembayaran</button>
+                </div>
+            </div>
+            <div class="transaction-history">
+                <h2><i class="fas fa-history icon"></i>Riwayat Transaksi</h2>
+                <div id="transactionHistory"></div>
+            </div>
+        </div>
+        <div id="addProductForm">
+            <h2><i class="fas fa-plus-circle icon"></i>Tambah Produk Baru</h2>
+            <input type="text" id="newProductName" placeholder="Nama Produk">
+            <input type="number" id="newProductPrice" placeholder="Harga Produk">
+            <button onclick="addNewProduct()"><i class="fas fa-plus icon"></i>Tambah Produk</button>
+        </div>
+    </div>
+
+    <script>
+        let products = [
+            { id: 1, name: "Apel", price: 5000 },
+            { id: 2, name: "Pisang", price: 3000 },
+            { id: 3, name: "Jeruk", price: 4000 },
+        ];
+        let cart = [];
+        let transactions = [];
+
+        function renderProducts() {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <span><i class="fas fa-box icon"></i>${product.name} - Rp ${product.price.toLocaleString()}</span>
+                    <button onclick="addToCart(${product.id})"><i class="fas fa-plus icon"></i>Tambah</button>
+                `;
+                productList.appendChild(productItem);
+            });
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            cartItems.innerHTML = '';
+            cart.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <span><i class="fas fa-shopping-basket icon"></i>${item.name} x${item.quantity}</span>
+                    <span>Rp ${(item.price * item.quantity).toLocaleString()}</span>
+                    <button onclick="removeFromCart(${item.id})"><i class="fas fa-minus icon"></i>Hapus</button>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+            updateCartTotal();
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const cartItem = cart.find(item => item.id === productId);
+            if (cartItem) {
+                cartItem.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            renderCart();
+        }
+
+        function removeFromCart(productId) {
+            const index = cart.findIndex(item => item.id === productId);
+            if (index !== -1) {
+                if (cart[index].quantity > 1) {
+                    cart[index].quantity--;
+                } else {
+                    cart.splice(index, 1);
+                }
+            }
+            renderCart();
+        }
+
+        function updateCartTotal() {
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            document.getElementById('cartTotal').textContent = `Rp ${total.toLocaleString()}`;
+        }
+
+        function processPayment() {
+            if (cart.length === 0) {
+                alert('Keranjang kosong!');
+                return;
+            }
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const customerPayment = parseFloat(document.getElementById('customerPayment').value);
+            
+            if (isNaN(customerPayment) || customerPayment < total) {
+                alert('Jumlah pembayaran tidak valid atau kurang dari total belanja!');
+                return;
+            }
+
+            const change = customerPayment - total;
+            const transaction = {
+                id: transactions.length + 1,
+                items: [...cart],
+                total: total,
+                customerPayment: customerPayment,
+                change: change,
+                date: new Date().toLocaleString()
+            };
+            transactions.push(transaction);
+            renderTransactionHistory();
+            cart = [];
+            renderCart();
+            document.getElementById('customerPayment').value = '';
+            alert(`Pembayaran berhasil!\nTotal: Rp ${total.toLocaleString()}\nDibayar: Rp ${customerPayment.toLocaleString()}\nKembalian: Rp ${change.toLocaleString()}`);
+        }
+
+        function renderTransactionHistory() {
+            const history = document.getElementById('transactionHistory');
+            history.innerHTML = '';
+            transactions.slice().reverse().forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                transactionItem.innerHTML = `
+                    <div><i class="fas fa-receipt icon"></i>Transaksi #${transaction.id}</div>
+                    <div>Tanggal: ${transaction.date}</div>
+                    <div>Total: Rp ${transaction.total.toLocaleString()}</div>
+                    <div>Dibayar: Rp ${transaction.customerPayment.toLocaleString()}</div>
+                    <div>Kembalian: Rp ${transaction.change.toLocaleString()}</div>
+                `;
+                history.appendChild(transactionItem);
+            });
+        }
+
+        function addNewProduct() {
+            const name = document.getElementById('newProductName').value;
+            const price = parseInt(document.getElementById('newProductPrice').value);
+            if (name && price) {
+                const newProduct = {
+                    id: products.length + 1,
+                    name: name,
+                    price: price
+                };
+                products.push(newProduct);
+                renderProducts();
+                document.getElementById('newProductName').value = '';
+                document.getElementById('newProductPrice').value = '';
+            } else {
+                alert('Mohon isi nama dan harga produk!');
+            }
+        }
+
+        document.getElementById('productSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm)
+            );
+            renderFilteredProducts(filteredProducts);
+        });
+
+        function renderFilteredProducts(filteredProducts) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            filteredProducts.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <span><i class="fas fa-box icon"></i>${product.name} - Rp ${product.price.toLocaleString()}</span>
+                    <button onclick="addToCart(${product.id})"><i class="fas fa-plus icon"></i>Tambah</button>
+                `;
+                productList.appendChild(productItem);
+            });
+        }
+
+        renderProducts();
+        renderCart();
+        renderTransactionHistory();
+    </script>
+</body>
+</html>

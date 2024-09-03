@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator KPR Sederhana</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 4px;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .icon {
+            margin-right: 10px;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-calculator icon"></i>Kalkulator KPR</h1>
+        <div class="input-group">
+            <label for="loanAmount"><i class="fas fa-money-bill-wave icon"></i>Jumlah Pinjaman (Rp)</label>
+            <input type="text" id="loanAmount" placeholder="Masukkan jumlah pinjaman">
+        </div>
+        <div class="input-group">
+            <label for="interestRate"><i class="fas fa-percent icon"></i>Suku Bunga Tahunan (%)</label>
+            <input type="text" id="interestRate" placeholder="Masukkan suku bunga">
+        </div>
+        <div class="input-group">
+            <label for="loanTerm"><i class="fas fa-calendar-alt icon"></i>Jangka Waktu (Tahun)</label>
+            <input type="text" id="loanTerm" placeholder="Masukkan jangka waktu">
+        </div>
+        <button onclick="calculateMortgage()"><i class="fas fa-calculator icon"></i>Hitung</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(angka);
+        }
+
+        function calculateMortgage() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value.replace(/[^\d]/g, ''));
+            const interestRate = parseFloat(document.getElementById('interestRate').value);
+            const loanTerm = parseFloat(document.getElementById('loanTerm').value);
+
+            if (isNaN(loanAmount) || isNaN(interestRate) || isNaN(loanTerm) || loanAmount <= 0 || interestRate <= 0 || loanTerm <= 0) {
+                alert('Mohon masukkan angka yang valid untuk semua field.');
+                return;
+            }
+
+            const monthlyInterest = interestRate / 100 / 12;
+            const totalPayments = loanTerm * 12;
+
+            const monthlyPayment = (loanAmount * monthlyInterest * Math.pow(1 + monthlyInterest, totalPayments)) / (Math.pow(1 + monthlyInterest, totalPayments) - 1);
+            const totalPayment = monthlyPayment * totalPayments;
+            const totalInterest = totalPayment - loanAmount;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="result-item"><i class="fas fa-money-bill-wave icon"></i>Cicilan per Bulan: ${formatRupiah(monthlyPayment)}</div>
+                <div class="result-item"><i class="fas fa-coins icon"></i>Total Pembayaran: ${formatRupiah(totalPayment)}</div>
+                <div class="result-item"><i class="fas fa-chart-line icon"></i>Total Bunga: ${formatRupiah(totalInterest)}</div>
+            `;
+        }
+
+        // Format input sebagai Rupiah saat diketik
+        document.getElementById('loanAmount').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d]/g, '');
+            e.target.value = formatRupiah(value);
+        });
+
+        // Validasi input hanya angka dan titik untuk suku bunga
+        document.getElementById('interestRate').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^\d.]/g, '');
+        });
+
+        // Validasi input hanya angka untuk jangka waktu
+        document.getElementById('loanTerm').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^\d]/g, '');
+        });
+    </script>
+</body>
+</html>

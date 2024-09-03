@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Cicilan KPR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-group input:focus {
+            border-color: #333;
+            outline: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result p {
+            margin: 0;
+            padding: 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #555;
+        }
+        .icon {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kalkulator Cicilan KPR</h1>
+        <div class="form-group">
+            <label for="loanAmount"><span class="icon">💰</span>Jumlah Pinjaman (Rp):</label>
+            <input type="text" id="loanAmount" placeholder="Masukkan jumlah pinjaman" oninput="formatRupiah(this)" required>
+        </div>
+        <div class="form-group">
+            <label for="interestRate"><span class="icon">📈</span>Suku Bunga (%) :</label>
+            <input type="text" id="interestRate" placeholder="Masukkan suku bunga" oninput="validateNumber(this)" required>
+        </div>
+        <div class="form-group">
+            <label for="loanTerm"><span class="icon">📅</span>Jangka Waktu (tahun) :</label>
+            <input type="text" id="loanTerm" placeholder="Masukkan jangka waktu" oninput="validateNumber(this)" required>
+        </div>
+        <button onclick="calculateKPR()">Hitung Cicilan</button>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function formatRupiah(element) {
+            let value = element.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            element.value = rupiah;
+        }
+
+        function validateNumber(element) {
+            element.value = element.value.replace(/[^0-9.]/g, '');
+        }
+
+        function calculateKPR() {
+            let loanAmount = document.getElementById('loanAmount').value.replace(/\./g, '');
+            let interestRate = parseFloat(document.getElementById('interestRate').value);
+            let loanTerm = parseInt(document.getElementById('loanTerm').value);
+
+            if (!loanAmount || !interestRate || !loanTerm || loanAmount <= 0 || interestRate <= 0 || loanTerm <= 0) {
+                alert('Masukkan nilai yang valid untuk semua field.');
+                return;
+            }
+
+            let monthlyInterestRate = (interestRate / 100) / 12;
+            let numberOfPayments = loanTerm * 12;
+            let monthlyInstallment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments));
+            let totalPayment = monthlyInstallment * numberOfPayments;
+            let totalInterest = totalPayment - loanAmount;
+
+            document.getElementById('result').innerHTML = `
+                <p><span class="icon">📅</span>Cicilan Per Bulan: Rp ${formatRupiahResult(monthlyInstallment)}</p>
+                <p><span class="icon">💰</span>Total Pembayaran: Rp ${formatRupiahResult(totalPayment)}</p>
+                <p><span class="icon">📈</span>Total Bunga: Rp ${formatRupiahResult(totalInterest)}</p>
+            `;
+        }
+
+        function formatRupiahResult(amount) {
+            let number_string = amount.toFixed(0).replace(/[^,\d]/g, '').toString(),
+                split = number_string.split(','),
+                sisa = split[0].length % 3,
+                rupiah = split[0].substr(0, sisa),
+                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            return rupiah;
+        }
+    </script>
+</body>
+</html>
